@@ -11,14 +11,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun HomeList(data: List<String>) {
+fun HomeList(data: List<TransactionDataModel>) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(data) { item ->
-            Text(text = item)
+            Text(text = "${item.title} : ${item.description}")
         }
     }
 }
