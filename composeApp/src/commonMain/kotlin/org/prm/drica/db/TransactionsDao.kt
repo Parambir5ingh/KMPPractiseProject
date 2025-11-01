@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
-import org.prm.drica.TransactionDataModel
+import org.prm.drica.models.TransactionDataModel
 
 @Dao
 interface TransactionsDao {
@@ -14,6 +14,6 @@ interface TransactionsDao {
     @Query("SELECT count(*) FROM TransactionData")
     suspend fun count(): Int
 
-    @Query("SELECT * FROM TransactionData")
+    @Query("SELECT * FROM TransactionData ORDER BY dateTime DESC")
     fun getAll(): Flow<List<TransactionDataModel>>
 }

@@ -1,4 +1,4 @@
-package org.prm.drica
+package org.prm.drica.ui
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenuItem

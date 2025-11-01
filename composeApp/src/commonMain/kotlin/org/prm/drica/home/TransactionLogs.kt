@@ -1,0 +1,98 @@
+package org.prm.drica.home
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.prm.drica.db.DriCaDatabase
+import org.prm.drica.models.TransactionDataModel
+import org.prm.drica.utils.formatDateTime
+import org.prm.drica.utils.roundToDecimals
+
+@Composable
+fun TransactionLogs(database: DriCaDatabase) {
+    val viewModel = remember { TransLogsViewModel(database) }
+
+    val dataList by viewModel.transactionDao.getAll().collectAsState(initial = emptyList())
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(dataList) { item ->
+            TransactionCard(item)
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PrevTransactionCard() {
+    TransactionCard(TransactionDataModel(0, "Income", "DoorDash", 500.0, 30000.0, 60000.0, "Test Notes", 0, false, "", 0))
+}
+
+@Composable
+fun TransactionCard(tx: TransactionDataModel) {
+    val color = if (tx.type.equals("Income")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+    val label = tx.type + " : " + tx.category
+    val notes = tx.notes
+    val dateText = remember(tx.dateTime) { formatDateTime(tx.dateTime) }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 80.dp),
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                )
+                Text(
+                    text = notes,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Normal)
+                )
+                Text(
+                    text = dateText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Text(
+                text = (if (tx.type.equals("Income")) "+$" else "-$") + tx.amount.roundToDecimals(2),
+                color = color,
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            )
+        }
+    }
+}

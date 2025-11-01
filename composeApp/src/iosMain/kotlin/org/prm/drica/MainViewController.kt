@@ -6,9 +6,9 @@ import org.prm.drica.db.getRoomDatabase
 
 fun MainViewController() = ComposeUIViewController {
 
-    val dao = remember {
-        getRoomDatabase(getDatabaseBuilder()).getTransactionDao()
+    val database = remember {
+        getRoomDatabase(getDatabaseBuilder())
     }
 
-    App(dao)
+    App(database)
 }

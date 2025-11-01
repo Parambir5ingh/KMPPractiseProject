@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        val db = getRoomDatabase(getDatabaseBuilder(this)).getTransactionDao()
+        val db = getRoomDatabase(getDatabaseBuilder(this))
 
         setContent {
             App(db)

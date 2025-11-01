@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -16,10 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -30,31 +26,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import drica.composeapp.generated.resources.Res
 import drica.composeapp.generated.resources.ic_add
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.prm.drica.db.TransactionsDao
+import org.prm.drica.addnew.AddNew
+import org.prm.drica.addnew.AddNewViewModel
+import org.prm.drica.db.DriCaDatabase
+import org.prm.drica.home.TransactionLogs
+import org.prm.drica.ui.TitleBar
 import org.prm.drica.ui.theme.ScreenBackgroundColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun App(transactionDao: TransactionsDao) {
+fun App(database: DriCaDatabase) {
+    val viewModel = remember { AddNewViewModel(database) }
+
     MaterialTheme {
-        val dataList by transactionDao.getAll().collectAsState(initial = emptyList())
         val scope = rememberCoroutineScope()
 
-        LaunchedEffect(true) {
-            val transactionList = listOf<TransactionDataModel>(
-                TransactionDataModel(0, "Expense", "Gas Refueled"),
-                TransactionDataModel(0, "Expense", "Wipers changed"),
-                TransactionDataModel(0, "Income", "Deliveries income"),
-                TransactionDataModel(0, "Income", "Insurance Claim"),
-            )
-            transactionList.forEach { transactionDao.upsert(it) }
-        }
-
         var showAddNewScreen by remember { mutableStateOf(false) }
-//        val dataList = remember { mutableStateListOf<String>() }
         val sheetState = rememberModalBottomSheetState()
 
         Column(
@@ -70,7 +61,7 @@ fun App(transactionDao: TransactionsDao) {
 
             Box(modifier = Modifier.fillMaxSize()) {
 
-                HomeList(dataList)
+                TransactionLogs(database)
 
                 if (showAddNewScreen) {
                     ModalBottomSheet(
@@ -78,15 +69,18 @@ fun App(transactionDao: TransactionsDao) {
                         sheetState = sheetState
                     ) {
                         AddNew(onDismissed = {
-                            showAddNewScreen = false
-                        })
+                            scope.launch {
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                showAddNewScreen = false
+                            }
+                        }, viewModel)
                     }
                 }
 
                 // ADD button
                 FloatingActionButton(
                     onClick = {
-//                        dataList.add(0, "Item #${dataList.size + 1}")
                         showAddNewScreen = true
                     },
                     containerColor = MaterialTheme.colorScheme.primary,
