@@ -86,7 +86,10 @@ class AddNewViewModel(database: DriCaDatabase) : ViewModel() {
     }
 
     private fun validateForm() {
-        _isValid.value = _amountError.value == null && _totalKmsError.value == null
+        _isValid.value = listOf(
+            _amountError.value,
+            _totalKmsError.value
+        ).all { it == null }
     }
 
     @OptIn(ExperimentalTime::class)
