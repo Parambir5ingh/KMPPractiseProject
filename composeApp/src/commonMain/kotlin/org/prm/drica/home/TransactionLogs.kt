@@ -21,11 +21,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.prm.drica.db.DriCaDatabase
 import org.prm.drica.models.TransactionDataModel
+import org.prm.drica.ui.theme.DarkGreen
+import org.prm.drica.ui.theme.Red
 import org.prm.drica.utils.formatDateTime
 import org.prm.drica.utils.roundToDecimals
 
@@ -54,8 +57,8 @@ fun PrevTransactionCard() {
 
 @Composable
 fun TransactionCard(tx: TransactionDataModel) {
-    val color = if (tx.type.equals("Income")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-    val label = tx.type + " : " + tx.category
+    val color = if (tx.type.equals("Income")) DarkGreen else Red
+    val label = tx.category
     val notes = tx.notes
     val dateText = remember(tx.dateTime) { formatDateTime(tx.dateTime) }
 
@@ -76,23 +79,30 @@ fun TransactionCard(tx: TransactionDataModel) {
             Column {
                 Text(
                     text = label,
+                    color = color,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
+                if (notes.trim().isNotEmpty()) {
+                    Text(
+                        text = notes,
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Normal)
+                    )
+                }
+
+            }
+            Column(horizontalAlignment = Alignment.End){
                 Text(
-                    text = notes,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Normal)
+                    text = (if (tx.type.equals("Income")) "+$" else "-$") + tx.amount.roundToDecimals(2),
+                    color = color,
+                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 )
                 Text(
                     text = dateText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.End
                 )
             }
-            Text(
-                text = (if (tx.type.equals("Income")) "+$" else "-$") + tx.amount.roundToDecimals(2),
-                color = color,
-                style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            )
         }
     }
 }

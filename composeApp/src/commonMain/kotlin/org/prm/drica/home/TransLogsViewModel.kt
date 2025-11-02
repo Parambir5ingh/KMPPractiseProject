@@ -2,6 +2,7 @@ package org.prm.drica.home
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,7 @@ import org.prm.drica.utils.Validator
 /*
 * Created by parambirsingh ON 31/10/25
 */
-class TransLogsViewModel(database : DriCaDatabase) {
+class TransLogsViewModel(database : DriCaDatabase) : ViewModel() {
     private val _transactionState = MutableStateFlow(TransactionDataModel())
     val transactionState: StateFlow<TransactionDataModel> = _transactionState
 

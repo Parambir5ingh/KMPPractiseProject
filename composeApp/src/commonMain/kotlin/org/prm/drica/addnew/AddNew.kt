@@ -96,7 +96,7 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddNewViewModel) {
                 }, // Update the state with new text
                 label = { Text("Amount") }, // Optional label
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                isError = amountError != null
+                isError = amountError != null && !amountError.equals("untouched")
             )
 
             Row {
@@ -106,7 +106,8 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddNewViewModel) {
                     onValueChange = { newText ->
                         val filteredValue = filterNumericDecimalInput(newText)
                         if (newText.length <= 10) {
-                            transactionState.tripKms = filteredValue.toDoubleOrNull() ?: 0.0
+                            val doubleValue = filteredValue.toDoubleOrNull() ?: 0.0
+                            viewModel.onTripKmChanged(doubleValue)
                         }
                     },
                     label = { Text("KMs(Trip)") },
@@ -127,7 +128,7 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddNewViewModel) {
                     },
                     label = { Text("Total KMs") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    isError = totalKmsError != null
+                    isError = totalKmsError != null && !totalKmsError.equals("untouched")
                 )
             }
 

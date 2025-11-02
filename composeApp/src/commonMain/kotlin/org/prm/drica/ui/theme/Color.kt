@@ -11,3 +11,5 @@ val BackgroundColor = Color(0xFFFFFFFF)
 val TextColor = Color(0xFF000000)
 val ScreenBackgroundColor = Color.White
 val TextFieldColor = Color(0xFFECECEC)
+val DarkGreen = Color(0xFF008000)
+val Red = Color(0xFFFF2C2C)

@@ -36,6 +36,6 @@ fun formatDateTime(epochMillis: Long): String {
     val amPm = if (hour < 12) "AM" else "PM"
     val displayHour = if (hour % 12 == 0) 12 else hour % 12
 
-    return "${day.toString().padStart(2, '0')} $month $year, " +
+    return "${day.toString().padStart(2, '0')} $month $year\n" +
             "${displayHour}:${minute.toString().padStart(2, '0')} $amPm"
 }

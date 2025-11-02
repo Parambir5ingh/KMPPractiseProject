@@ -21,10 +21,10 @@ class AddNewViewModel(database: DriCaDatabase) : ViewModel() {
     private val _transactionState = MutableStateFlow(TransactionDataModel())
     val transactionState: StateFlow<TransactionDataModel> = _transactionState
 
-    private val _amountError = MutableStateFlow<String?>(null)
+    private val _amountError = MutableStateFlow<String?>("untouched")
     var amountError: StateFlow<String?> = _amountError
 
-    private val _totalKmsError = MutableStateFlow<String?>(null)
+    private val _totalKmsError = MutableStateFlow<String?>("untouched")
     var totalKmsError: StateFlow<String?> = _totalKmsError
 
     private val _isValid = MutableStateFlow(false)
@@ -53,6 +53,10 @@ class AddNewViewModel(database: DriCaDatabase) : ViewModel() {
         _transactionState.update { it.copy(amount = value) }
         _amountError.value = Validator.validateDouble(value, "Amount")
         validateForm()
+    }
+
+    fun onTripKmChanged(tripKms: Double) {
+        _transactionState.update { it.copy(tripKms = tripKms) }
     }
 
     fun onTotalKmChanged(value: Double) {
@@ -86,10 +90,11 @@ class AddNewViewModel(database: DriCaDatabase) : ViewModel() {
     }
 
     private fun validateForm() {
-        _isValid.value = listOf(
-            _amountError.value,
-            _totalKmsError.value
-        ).all { it == null }
+        _isValid.value  = _amountError.value == null && _totalKmsError.value == null
+//        _isValid.value = listOf(_amountError.value, _totalKmsError.value)
+//            .all { error -> error == null } &&
+//                listOf(_amountError.value, _totalKmsError.value)
+//                    .none { error -> error == "untouched" }
     }
 
     @OptIn(ExperimentalTime::class)
