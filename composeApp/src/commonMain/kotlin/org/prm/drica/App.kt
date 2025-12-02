@@ -5,16 +5,23 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +39,9 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.prm.drica.addnew.AddNew
 import org.prm.drica.addnew.AddNewViewModel
 import org.prm.drica.db.DriCaDatabase
-import org.prm.drica.home.TransactionLogs
+import org.prm.drica.home.Tabs
+import org.prm.drica.home.dashboard.DashboardComposable
+import org.prm.drica.home.transactions.TransactionLogs
 import org.prm.drica.ui.TitleBar
 import org.prm.drica.ui.theme.ScreenBackgroundColor
 
@@ -41,6 +50,10 @@ import org.prm.drica.ui.theme.ScreenBackgroundColor
 @Preview
 fun App(database: DriCaDatabase) {
     val viewModel = remember { AddNewViewModel(database) }
+
+    val scope = rememberCoroutineScope()
+    val pagerState = rememberPagerState(pageCount = { Tabs.entries.size })
+    val selectedTabIndex = remember { derivedStateOf { pagerState.currentPage } }
 
     MaterialTheme {
         val scope = rememberCoroutineScope()
@@ -57,11 +70,52 @@ fun App(database: DriCaDatabase) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
 
-            TitleBar("DriCA")
+            TitleBar("DriCA", {
+
+            })
 
             Box(modifier = Modifier.fillMaxSize()) {
 
-                TransactionLogs(database)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+//                        .padding(top = it.calculateTopPadding())
+                ) {
+                    TabRow(
+//                        backgroundColor = Color.Transparent,
+                        selectedTabIndex = selectedTabIndex.value,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Tabs.entries.forEachIndexed { index, currentTab ->
+                            Tab(
+                                selected = selectedTabIndex.value == index,
+                                onClick = {
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(currentTab.ordinal)
+                                    }
+                                },
+                                text = { Text(text = currentTab.text) }
+                            )
+                        }
+                    }
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            when (selectedTabIndex.value) {
+                                0 -> DashboardComposable(database)
+                                1 -> TransactionLogs(database)
+                                else -> Text(text = Tabs.entries[selectedTabIndex.value].text)
+                            }
+                        }
+                    }
+                }
 
                 if (showAddNewScreen) {
                     ModalBottomSheet(

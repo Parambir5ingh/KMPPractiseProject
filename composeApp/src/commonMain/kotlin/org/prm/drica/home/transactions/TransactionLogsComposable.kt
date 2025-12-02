@@ -1,4 +1,4 @@
-package org.prm.drica.home
+package org.prm.drica.home.transactions
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,12 +20,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.prm.drica.db.DriCaDatabase
+import org.prm.drica.home.transactions.TransLogsViewModel
 import org.prm.drica.models.TransactionDataModel
 import org.prm.drica.ui.theme.DarkGreen
 import org.prm.drica.ui.theme.Red
@@ -59,6 +61,7 @@ fun PrevTransactionCard() {
 fun TransactionCard(tx: TransactionDataModel) {
     val color = if (tx.type.equals("Income")) DarkGreen else Red
     val label = tx.category
+    val totalKilometers = tx.totalKms
     val notes = tx.notes
     val dateText = remember(tx.dateTime) { formatDateTime(tx.dateTime) }
 
@@ -88,12 +91,16 @@ fun TransactionCard(tx: TransactionDataModel) {
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Normal)
                     )
                 }
-
+                Text(
+                    text = "$totalKilometers Km",
+                    color = Black,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                )
             }
-            Column(horizontalAlignment = Alignment.End){
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.SpaceBetween){
                 Text(
                     text = (if (tx.type.equals("Income")) "+$" else "-$") + tx.amount.roundToDecimals(2),
-                    color = color,
+                    color = Black,
                     style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 )
                 Text(

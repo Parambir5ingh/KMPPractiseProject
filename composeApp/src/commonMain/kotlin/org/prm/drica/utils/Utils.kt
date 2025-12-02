@@ -14,7 +14,9 @@ fun Double.roundToDecimals(decimals: Int): Float {
     var dotAt = 1
     repeat(decimals) { dotAt *= 10 }
     val roundedValue = (this * dotAt).roundToInt()
-    return (roundedValue / dotAt) + (roundedValue % dotAt).toFloat() / dotAt
+    val finalValue = (roundedValue / dotAt) + (roundedValue % dotAt).toFloat() / dotAt
+
+    return if (finalValue < 0) -finalValue else finalValue
 }
 
 fun Double.toValidString(): String {

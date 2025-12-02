@@ -16,7 +16,7 @@ import kotlin.time.ExperimentalTime
 * Created by parambirsingh ON 31/10/25
 */
 class AddNewViewModel(database: DriCaDatabase) : ViewModel() {
-    private val transactionDao = database.getTransactionDao()
+    val transactionDao = database.getTransactionDao()
 
     private val _transactionState = MutableStateFlow(TransactionDataModel())
     val transactionState: StateFlow<TransactionDataModel> = _transactionState
@@ -33,10 +33,10 @@ class AddNewViewModel(database: DriCaDatabase) : ViewModel() {
     private val _entryTypeOptions = MutableStateFlow(arrayOf("Income", "Expense"))
     val entryTypeOptions: StateFlow<Array<String>> = _entryTypeOptions
 
-    private val _expenseTypeOptions = MutableStateFlow(arrayOf("Gas", "General Repair", "Special Repair", "Tyres", "Accessories"))
+    private val _expenseTypeOptions = MutableStateFlow(arrayOf("Gas", "General Repair", "Major Repair", "Tyres", "Accessories"))
     val expenseTypeOptions: StateFlow<Array<String>> = _expenseTypeOptions
 
-    private val _incomeTypeOptions = MutableStateFlow(arrayOf("Food Deliveries", "Cab", "Insurance Claim", "Tax Return"))
+    private val _incomeTypeOptions = MutableStateFlow(arrayOf("Deliveries", "Cab", "Insurance Claim", "Tax Return"))
     val incomeTypeOptions: StateFlow<Array<String>> = _incomeTypeOptions
 
     private val _selectedEntryType = MutableStateFlow(_entryTypeOptions.value.first())
@@ -48,15 +48,10 @@ class AddNewViewModel(database: DriCaDatabase) : ViewModel() {
     private val _selectedIncomeType = MutableStateFlow(_incomeTypeOptions.value.first())
     val selectedIncomeType: StateFlow<String> = _selectedIncomeType
 
-
     fun onAmountChanged(value: Double) {
         _transactionState.update { it.copy(amount = value) }
         _amountError.value = Validator.validateDouble(value, "Amount")
         validateForm()
-    }
-
-    fun onTripKmChanged(tripKms: Double) {
-        _transactionState.update { it.copy(tripKms = tripKms) }
     }
 
     fun onTotalKmChanged(value: Double) {
@@ -66,15 +61,14 @@ class AddNewViewModel(database: DriCaDatabase) : ViewModel() {
     }
 
     fun onSelectedEntryType(type: String) {
-        _transactionState.update { it.copy(type = type) }
-
-        if (type == "Income") {
-            _selectedIncomeType.value = _incomeTypeOptions.value.first()
+        val category = if (type == "Income") {
+            _incomeTypeOptions.value.first().also { _selectedIncomeType.value = it }
         } else {
-            _selectedExpenseType.value = _expenseTypeOptions.value.first()
+            _expenseTypeOptions.value.first().also { _selectedExpenseType.value = it }
         }
 
         _selectedEntryType.value = type
+        _transactionState.update { it.copy(type = type, category = category) }
     }
 
     fun onSelectedCategoryType(category: String) {
@@ -90,7 +84,7 @@ class AddNewViewModel(database: DriCaDatabase) : ViewModel() {
     }
 
     private fun validateForm() {
-        _isValid.value  = _amountError.value == null && _totalKmsError.value == null
+        _isValid.value = _amountError.value == null && _totalKmsError.value == null
 //        _isValid.value = listOf(_amountError.value, _totalKmsError.value)
 //            .all { error -> error == null } &&
 //                listOf(_amountError.value, _totalKmsError.value)
@@ -101,6 +95,9 @@ class AddNewViewModel(database: DriCaDatabase) : ViewModel() {
     fun submit() {
         _transactionState.update { it.copy(dateTime = Clock.System.now().toEpochMilliseconds()) }
         viewModelScope.launch {
+            if (transactionState.value.type.equals(entryTypeOptions.value[1])) { // IF ITS EXPENSE, IT WILL BE SAVED AS NEGATIVE VALUE
+                onAmountChanged(-transactionState.value.amount)
+            }
             transactionDao.upsert(transactionState.value)
             _transactionState.update { TransactionDataModel() }
         }

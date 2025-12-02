@@ -3,11 +3,9 @@ package org.prm.drica.addnew
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -51,6 +49,10 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddNewViewModel) {
     LaunchedEffect(Unit) {
         viewModel.onSelectedEntryType(entryTypeOptions.first())
         viewModel.onSelectedCategoryType(incomeTypeOptions.first())
+
+        viewModel.transactionDao.getLastTransaction()?.totalKms?.let {
+            transactionState.totalKms = it
+        }
     }
 
     Column(
@@ -71,7 +73,7 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddNewViewModel) {
                     "Income Type",
                     incomeTypeOptions,
                     selectedValue = selectedIncomeType,
-                    onSelectOption = { viewModel.onSelectedCategoryType(it) } // Correct
+                    onSelectOption = { viewModel.onSelectedCategoryType(it) }
                 )
             } else { // Expense
                 Dropdown(
@@ -82,6 +84,20 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddNewViewModel) {
                 )
             }
 
+            TextField(
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                value = transactionState.totalKms.toValidString(),
+                onValueChange = { newText ->
+                    val filteredValue = filterNumericDecimalInput(newText)
+                    if (newText.length <= 9) {
+                        val doubleValue = filteredValue.toDoubleOrNull() ?: 0.0
+                        viewModel.onTotalKmChanged(doubleValue)
+                    }
+                },
+                label = { Text("Odometer(KMs)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                isError = totalKmsError != null && !totalKmsError.equals("untouched")
+            )
 
             TextField(
                 modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(),
@@ -98,39 +114,6 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddNewViewModel) {
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 isError = amountError != null && !amountError.equals("untouched")
             )
-
-            Row {
-                TextField(
-                    modifier = Modifier.weight(1f),
-                    value = transactionState.tripKms.toString(),
-                    onValueChange = { newText ->
-                        val filteredValue = filterNumericDecimalInput(newText)
-                        if (newText.length <= 10) {
-                            val doubleValue = filteredValue.toDoubleOrNull() ?: 0.0
-                            viewModel.onTripKmChanged(doubleValue)
-                        }
-                    },
-                    label = { Text("KMs(Trip)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
-                )
-
-                Spacer(modifier = Modifier.width(10.dp))
-
-                TextField(
-                    modifier = Modifier.weight(1f),
-                    value = transactionState.totalKms.toValidString(),
-                    onValueChange = { newText ->
-                        val filteredValue = filterNumericDecimalInput(newText)
-                        if (newText.length <= 10) {
-                            val doubleValue = filteredValue.toDoubleOrNull() ?: 0.0
-                            viewModel.onTotalKmChanged(doubleValue)
-                        }
-                    },
-                    label = { Text("Total KMs") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    isError = totalKmsError != null && !totalKmsError.equals("untouched")
-                )
-            }
 
             TextField(
                 modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(),

@@ -14,6 +14,18 @@ interface TransactionsDao {
     @Query("SELECT count(*) FROM TransactionData")
     suspend fun count(): Int
 
+    @Query("SELECT * FROM TransactionData ORDER BY dateTime DESC LIMIT 1")
+    suspend fun getLastTransaction(): TransactionDataModel?
+
     @Query("SELECT * FROM TransactionData ORDER BY dateTime DESC")
     fun getAll(): Flow<List<TransactionDataModel>>
+
+    @Query("SELECT SUM(amount) FROM TransactionData")
+    suspend fun getTotalProfit(): Double?
+
+    @Query("SELECT SUM(amount) FROM TransactionData WHERE amount > 0")
+    suspend fun getTotalEarnings(): Double?
+
+    @Query("SELECT dateTime FROM TransactionData")
+    suspend fun getAllTransactionTimestamps(): List<Long>
 }

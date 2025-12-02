@@ -1,9 +1,15 @@
 package org.prm.drica.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,13 +24,13 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 @Composable
 fun previewTitleBar() {
-    TitleBar("Add Entry")
+    TitleBar("Add Entry",{})
 }
 
 @Composable
 fun TitleBar(
     title: String,
-//    onBackClick: () -> Unit
+    onSettingsPressed: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -41,16 +47,16 @@ fun TitleBar(
             modifier = Modifier.fillMaxWidth()
         )
 
-        /*Icon(
-            imageVector = Icons.Default.Close,
-            contentDescription = "Back",
+        Icon(
+            imageVector = Icons.Default.Settings,
+            contentDescription = "Settings",
             tint = Color.White,
             modifier = Modifier
                 .padding(end = 5.dp)
                 .size(40.dp)
                 .padding(5.dp)
                 .align(Alignment.CenterEnd)
-                .clickable { onBackClick() }
-        )*/
+                .clickable {  }
+        )
     }
 }
