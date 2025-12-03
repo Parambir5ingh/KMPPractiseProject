@@ -3,6 +3,7 @@ package org.prm.drica.utils
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -20,11 +21,11 @@ fun Double.roundToDecimals(decimals: Int): Float {
 }
 
 fun Double.toValidString(): String {
-    return if (this == 0.0) "" else this.toString()
+    return if (this == 0.0) "" else this.roundToLong().toString()
 }
 
 @OptIn(ExperimentalTime::class)
-fun formatDateTime(epochMillis: Long): String {
+fun formatDate(epochMillis: Long): String {
     val instant = Instant.fromEpochMilliseconds(epochMillis)
     val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
 
@@ -38,6 +39,5 @@ fun formatDateTime(epochMillis: Long): String {
     val amPm = if (hour < 12) "AM" else "PM"
     val displayHour = if (hour % 12 == 0) 12 else hour % 12
 
-    return "${day.toString().padStart(2, '0')} $month $year\n" +
-            "${displayHour}:${minute.toString().padStart(2, '0')} $amPm"
+    return "${day.toString().padStart(2, '0')} $month $year"
 }

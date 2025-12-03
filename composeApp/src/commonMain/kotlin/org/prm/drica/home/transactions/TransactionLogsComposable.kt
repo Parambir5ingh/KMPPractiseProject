@@ -27,11 +27,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.prm.drica.db.DriCaDatabase
-import org.prm.drica.home.transactions.TransLogsViewModel
 import org.prm.drica.models.TransactionDataModel
 import org.prm.drica.ui.theme.DarkGreen
 import org.prm.drica.ui.theme.Red
-import org.prm.drica.utils.formatDateTime
+import org.prm.drica.utils.formatDate
 import org.prm.drica.utils.roundToDecimals
 
 @Composable
@@ -63,7 +62,7 @@ fun TransactionCard(tx: TransactionDataModel) {
     val label = tx.category
     val totalKilometers = tx.totalKms
     val notes = tx.notes
-    val dateText = remember(tx.dateTime) { formatDateTime(tx.dateTime) }
+    val dateText = remember(tx.dateTime) { formatDate(tx.dateTime) }
 
     Card(
         modifier = Modifier

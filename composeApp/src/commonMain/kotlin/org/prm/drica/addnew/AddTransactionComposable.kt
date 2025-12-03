@@ -1,6 +1,7 @@
 package org.prm.drica.addnew
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,7 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.prm.drica.ui.Dropdown
+import org.prm.drica.ui.WheelDatePickerBottomSheet
+import org.prm.drica.utils.formatDate
 import org.prm.drica.utils.toValidString
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 @Composable
 @Preview
@@ -31,8 +39,9 @@ fun PreviewAddNew() {
 //    AddNew({}, AddNewViewModel())
 }
 
+@OptIn(ExperimentalTime::class)
 @Composable
-fun AddNew(onDismissed: () -> Unit, viewModel: AddNewViewModel) {
+fun AddNew(onDismissed: () -> Unit, viewModel: AddTransactionViewModel) {
 //    var transactionData by remember { mutableStateOf<TransactionDataModel?>(null) }
     val transactionState by viewModel.transactionState.collectAsState()
     val amountError by viewModel.amountError.collectAsState()
@@ -46,9 +55,13 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddNewViewModel) {
     val selectedExpenseType by viewModel.selectedExpenseType.collectAsState()
     val selectedIncomeType by viewModel.selectedIncomeType.collectAsState()
 
+    var showDatePicker by remember { mutableStateOf(false) }
+    var selectedDate by remember { mutableStateOf("") }
+
     LaunchedEffect(Unit) {
         viewModel.onSelectedEntryType(entryTypeOptions.first())
         viewModel.onSelectedCategoryType(incomeTypeOptions.first())
+        viewModel.onSelectedDate("", Clock.System.now().toEpochMilliseconds())
 
         viewModel.transactionDao.getLastTransaction()?.totalKms?.let {
             transactionState.totalKms = it
@@ -64,6 +77,28 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddNewViewModel) {
             modifier = Modifier.padding(10.dp).fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+
+            Text(
+                text = if (transactionState.dateTime == 0L) "Select Date" else formatDate(transactionState.dateTime),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp)
+//                    .background(Color.LightGray.copy(alpha = 0.2f))
+//                    .padding(12.dp)
+                    .clickable { showDatePicker = true }
+            )
+
+            WheelDatePickerBottomSheet(
+                show = showDatePicker,
+                selectedDate = selectedDate,
+                onDone = { date, dateTimeMilis ->
+                    selectedDate = date
+                    showDatePicker = false
+                    viewModel.onSelectedDate(date, dateTimeMilis)
+                },
+                onDismiss = { showDatePicker = false }
+            )
+
             Dropdown("Entry Type", entryTypeOptions, selectedValue = selectedEntryType, onSelectOption = {
                 viewModel.onSelectedEntryType(it)
             })
@@ -95,7 +130,7 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddNewViewModel) {
                     }
                 },
                 label = { Text("Odometer(KMs)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 isError = totalKmsError != null && !totalKmsError.equals("untouched")
             )
 

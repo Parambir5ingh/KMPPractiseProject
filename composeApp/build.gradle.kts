@@ -62,6 +62,7 @@ kotlin {
             implementation(libs.androidx.sqlite.bundled)
             implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kmp.date.time.picker)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

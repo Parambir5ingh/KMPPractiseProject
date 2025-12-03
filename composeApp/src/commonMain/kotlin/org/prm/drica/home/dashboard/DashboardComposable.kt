@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.prm.drica.db.DriCaDatabase
+import org.prm.drica.utils.roundToDecimals
 
 @Composable
 fun DashboardComposable(database: DriCaDatabase) {
@@ -65,7 +66,7 @@ fun DashboardScreen(earnings: Double, daysWorked: Int, totalProfit: Double) {
             DashboardCard(
                 modifier = Modifier
                     .weight(1f),
-                title = "$$earnings\nTotal Earnings",
+                title = "$${earnings.roundToDecimals(2)}\nTotal Earnings",
                 background = Color(0xFFB0BEC5)
             )
 
@@ -87,7 +88,7 @@ fun DashboardScreen(earnings: Double, daysWorked: Int, totalProfit: Double) {
             DashboardCard(
                 modifier = Modifier
                     .weight(1f),
-                title = "$$totalProfit\nTotal Profit",
+                title = "$${totalProfit.roundToDecimals(2)}\nTotal Profit",
                 background = Color(0xFF81C784)
             )
 

@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.prm.drica.addnew.AddNew
-import org.prm.drica.addnew.AddNewViewModel
+import org.prm.drica.addnew.AddTransactionViewModel
 import org.prm.drica.db.DriCaDatabase
 import org.prm.drica.home.Tabs
 import org.prm.drica.home.dashboard.DashboardComposable
@@ -49,7 +49,7 @@ import org.prm.drica.ui.theme.ScreenBackgroundColor
 @Composable
 @Preview
 fun App(database: DriCaDatabase) {
-    val viewModel = remember { AddNewViewModel(database) }
+    val viewModel = remember { AddTransactionViewModel(database) }
 
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { Tabs.entries.size })

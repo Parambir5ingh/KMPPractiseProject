@@ -9,13 +9,12 @@ import kotlinx.coroutines.launch
 import org.prm.drica.db.DriCaDatabase
 import org.prm.drica.models.TransactionDataModel
 import org.prm.drica.utils.Validator
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 /*
 * Created by parambirsingh ON 31/10/25
 */
-class AddNewViewModel(database: DriCaDatabase) : ViewModel() {
+class AddTransactionViewModel(database: DriCaDatabase) : ViewModel() {
     val transactionDao = database.getTransactionDao()
 
     private val _transactionState = MutableStateFlow(TransactionDataModel())
@@ -91,9 +90,8 @@ class AddNewViewModel(database: DriCaDatabase) : ViewModel() {
 //                    .none { error -> error == "untouched" }
     }
 
-    @OptIn(ExperimentalTime::class)
     fun submit() {
-        _transactionState.update { it.copy(dateTime = Clock.System.now().toEpochMilliseconds()) }
+//        _transactionState.update { it.copy(dateTime = Clock.System.now().toEpochMilliseconds()) }
         viewModelScope.launch {
             if (transactionState.value.type.equals(entryTypeOptions.value[1])) { // IF ITS EXPENSE, IT WILL BE SAVED AS NEGATIVE VALUE
                 onAmountChanged(-transactionState.value.amount)
@@ -101,5 +99,11 @@ class AddNewViewModel(database: DriCaDatabase) : ViewModel() {
             transactionDao.upsert(transactionState.value)
             _transactionState.update { TransactionDataModel() }
         }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    fun onSelectedDate(date: String, dateTimeMilis : Long) {
+        println("Selected Date: $date, Miliseconds : $dateTimeMilis")
+        _transactionState.update { it.copy(dateTime = dateTimeMilis) }
     }
 }
