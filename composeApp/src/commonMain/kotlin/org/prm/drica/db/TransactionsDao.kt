@@ -1,6 +1,7 @@
 package org.prm.drica.db
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
@@ -28,4 +29,7 @@ interface TransactionsDao {
 
     @Query("SELECT dateTime FROM TransactionData")
     suspend fun getAllTransactionTimestamps(): List<Long>
+
+    @Delete
+    suspend fun deleteOne(transactionDataModel: TransactionDataModel)
 }

@@ -1,4 +1,4 @@
-package org.prm.drica.addnew
+package org.prm.drica.navigation.addnew
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,7 +23,7 @@ class AddTransactionViewModel(database: DriCaDatabase) : ViewModel() {
     private val _amountError = MutableStateFlow<String?>("untouched")
     var amountError: StateFlow<String?> = _amountError
 
-    private val _totalKmsError = MutableStateFlow<String?>("untouched")
+    private val _totalKmsError = MutableStateFlow<String?>(null)
     var totalKmsError: StateFlow<String?> = _totalKmsError
 
     private val _isValid = MutableStateFlow(false)

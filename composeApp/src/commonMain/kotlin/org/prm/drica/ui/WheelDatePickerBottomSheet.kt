@@ -14,23 +14,34 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toLocalDateTime
 import network.chaintech.kmp_date_time_picker.ui.datepicker.WheelDatePickerView
 import network.chaintech.kmp_date_time_picker.utils.DateTimePickerView
 import network.chaintech.kmp_date_time_picker.utils.WheelPickerDefaults
+import network.chaintech.kmp_date_time_picker.utils.now
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 @Composable
 fun WheelDatePickerBottomSheet(
     show: Boolean,
-    selectedDate: String,
+    selectedDate: Long?,
     onDone: (String, Long) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val startDate = selectedDate?.let {
+        Instant.fromEpochMilliseconds(it)
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+            .date
+    } ?: LocalDate.now()
+
     if (show) {
         WheelDatePickerView(
+            startDate = startDate,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 22.dp, bottom = 26.dp),

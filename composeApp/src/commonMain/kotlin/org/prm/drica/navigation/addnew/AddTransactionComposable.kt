@@ -1,14 +1,17 @@
-package org.prm.drica.addnew
+package org.prm.drica.navigation.addnew
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -23,13 +26,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.prm.drica.ui.Dropdown
 import org.prm.drica.ui.WheelDatePickerBottomSheet
 import org.prm.drica.utils.formatDate
-import org.prm.drica.utils.toValidString
+import org.prm.drica.utils.toValidDecimalString
+import org.prm.drica.utils.toValidLongString
+import kotlin.text.iterator
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -56,7 +62,6 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddTransactionViewModel) {
     val selectedIncomeType by viewModel.selectedIncomeType.collectAsState()
 
     var showDatePicker by remember { mutableStateOf(false) }
-    var selectedDate by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.onSelectedEntryType(entryTypeOptions.first())
@@ -69,30 +74,30 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddTransactionViewModel) {
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth().background(Color.White),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier.fillMaxWidth().background(Color.White).verticalScroll(rememberScrollState()).imePadding(),
+//        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
 
         Column(
-            modifier = Modifier.padding(10.dp).fillMaxWidth(),
+            modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
 
             Text(
                 text = if (transactionState.dateTime == 0L) "Select Date" else formatDate(transactionState.dateTime),
                 modifier = Modifier
+//                    .padding(4.dp)
                     .fillMaxWidth()
-                    .padding(12.dp)
 //                    .background(Color.LightGray.copy(alpha = 0.2f))
-//                    .padding(12.dp)
-                    .clickable { showDatePicker = true }
+//                    .padding(4.dp)
+                    .clickable { showDatePicker = true },
+                textAlign = TextAlign.Center
             )
 
             WheelDatePickerBottomSheet(
                 show = showDatePicker,
-                selectedDate = selectedDate,
+                selectedDate = transactionState.dateTime,
                 onDone = { date, dateTimeMilis ->
-                    selectedDate = date
                     showDatePicker = false
                     viewModel.onSelectedDate(date, dateTimeMilis)
                 },
@@ -121,7 +126,7 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddTransactionViewModel) {
 
             TextField(
                 modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                value = transactionState.totalKms.toValidString(),
+                value = transactionState.totalKms.toValidLongString(),
                 onValueChange = { newText ->
                     val filteredValue = filterNumericDecimalInput(newText)
                     if (newText.length <= 9) {
@@ -136,7 +141,7 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddTransactionViewModel) {
 
             TextField(
                 modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(),
-                value = transactionState.amount.toValidString(),
+                value = transactionState.amount.toValidDecimalString(),
                 onValueChange = { newText ->
                     val filteredValue = filterNumericDecimalInput(newText)
                     if (filteredValue.length <= 6) { // limit input length
@@ -158,7 +163,7 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddTransactionViewModel) {
                 onValueChange = { newText ->
                     viewModel.onNotesChanged(newText)
                 }, // Update the state with new text
-                label = { Text("Notes") }, // Optional label
+                label = { Text("Note") }, // Optional label
             )
 
 

@@ -1,4 +1,4 @@
-package org.prm.drica.home.dashboard
+package org.prm.drica.navigation.home.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

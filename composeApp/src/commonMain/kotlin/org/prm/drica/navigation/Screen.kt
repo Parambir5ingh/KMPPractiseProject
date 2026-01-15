@@ -1,0 +1,6 @@
+package org.prm.drica.navigation
+
+sealed class Screen(val route: String) {
+    object Home : Screen("home")
+    object Settings : Screen("settings")
+}

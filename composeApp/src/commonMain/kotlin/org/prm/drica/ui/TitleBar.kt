@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -24,13 +25,14 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 @Composable
 fun previewTitleBar() {
-    TitleBar("Add Entry",{})
+    TitleBar("Screen Name", {}, {})
 }
 
 @Composable
 fun TitleBar(
     title: String,
-    onSettingsPressed: () -> Unit
+    onSettingsPressed: (() -> Unit)?,
+    onBackPressed: (() -> Unit)?
 ) {
     Box(
         modifier = Modifier
@@ -39,6 +41,20 @@ fun TitleBar(
             .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.CenterStart
     ) {
+        onBackPressed?.let {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Back",
+                tint = Color.White,
+                modifier = Modifier
+                    .padding(end = 5.dp)
+                    .size(40.dp)
+                    .padding(5.dp)
+                    .align(Alignment.CenterStart)
+                    .clickable { onBackPressed() }
+            )
+        }
+
         Text(
             text = title,
             color = Color.White,
@@ -47,16 +63,18 @@ fun TitleBar(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Icon(
-            imageVector = Icons.Default.Settings,
-            contentDescription = "Settings",
-            tint = Color.White,
-            modifier = Modifier
-                .padding(end = 5.dp)
-                .size(40.dp)
-                .padding(5.dp)
-                .align(Alignment.CenterEnd)
-                .clickable {  }
-        )
+        onSettingsPressed?.let {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Settings",
+                tint = Color.White,
+                modifier = Modifier
+                    .padding(end = 5.dp)
+                    .size(40.dp)
+                    .padding(5.dp)
+                    .align(Alignment.CenterEnd)
+                    .clickable { onSettingsPressed() }
+            )
+        }
     }
 }

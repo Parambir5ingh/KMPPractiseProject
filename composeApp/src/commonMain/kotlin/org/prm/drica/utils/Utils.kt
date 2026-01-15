@@ -20,7 +20,11 @@ fun Double.roundToDecimals(decimals: Int): Float {
     return if (finalValue < 0) -finalValue else finalValue
 }
 
-fun Double.toValidString(): String {
+fun Double.toValidDecimalString(): String {
+    return if (this == 0.0) "" else this.toString()
+}
+
+fun Double.toValidLongString(): String {
     return if (this == 0.0) "" else this.roundToLong().toString()
 }
 
