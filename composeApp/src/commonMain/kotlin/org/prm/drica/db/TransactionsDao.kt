@@ -15,10 +15,10 @@ interface TransactionsDao {
     @Query("SELECT count(*) FROM TransactionData")
     suspend fun count(): Int
 
-    @Query("SELECT * FROM TransactionData ORDER BY dateTime DESC LIMIT 1")
+    @Query("SELECT * FROM TransactionData ORDER BY dateTime DESC, totalKms DESC LIMIT 1")
     suspend fun getLastTransaction(): TransactionDataModel?
 
-    @Query("SELECT * FROM TransactionData ORDER BY dateTime DESC")
+    @Query("SELECT * FROM TransactionData ORDER BY dateTime DESC, totalKms DESC")
     fun getAll(): Flow<List<TransactionDataModel>>
 
     @Query("SELECT SUM(amount) FROM TransactionData")
