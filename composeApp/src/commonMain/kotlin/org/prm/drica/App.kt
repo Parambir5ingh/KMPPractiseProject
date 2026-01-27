@@ -22,7 +22,9 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +51,7 @@ import org.prm.drica.navigation.home.Tabs
 import org.prm.drica.navigation.home.dashboard.DashboardComposable
 import org.prm.drica.navigation.home.transactions.TransactionLogs
 import org.prm.drica.navigation.Screen
+import org.prm.drica.navigation.settings.ExportAppData
 import org.prm.drica.navigation.settings.SettingsScreen
 import org.prm.drica.ui.TitleBar
 import org.prm.drica.ui.theme.ScreenBackgroundColor
@@ -57,14 +60,23 @@ import org.prm.drica.ui.theme.ScreenBackgroundColor
 @Composable
 @Preview
 fun App(database: DriCaDatabase) {
-    val viewModel = remember { AddTransactionViewModel(database) }
+    val addTransViewModel = remember { AddTransactionViewModel(database) }
+    val appViewModel = remember { AppViewModel(database) }
 
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { Tabs.entries.size })
     val selectedTabIndex = remember { derivedStateOf { pagerState.currentPage } }
 
+    val transactionsData by appViewModel.transactionsData.collectAsState()
+
     val navController = rememberNavController()
 
+    LaunchedEffect(transactionsData) {
+        transactionsData?.let { data ->
+            ExportAppData.exportAppData(data)
+            appViewModel.onExportDone()
+        }
+    }
 
     MaterialTheme {
         val scope = rememberCoroutineScope()
@@ -90,8 +102,10 @@ fun App(database: DriCaDatabase) {
                     onBackPressed = {
                         navController.popBackStack()
                     },
-                    onVehicleManagementClick = {
-
+                    onExportDataClicked = {
+                        scope.launch {
+                            appViewModel.onExportClicked()
+                        }
                     }
                 )
             }
@@ -109,7 +123,7 @@ fun App(database: DriCaDatabase) {
                     }.invokeOnCompletion {
                         showAddNewScreen = false
                     }
-                }, viewModel)
+                }, addTransViewModel)
             }
         }
     }
@@ -170,7 +184,7 @@ private fun HomeComposable(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    userScrollEnabled = false,
+                    userScrollEnabled = true,
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize(),

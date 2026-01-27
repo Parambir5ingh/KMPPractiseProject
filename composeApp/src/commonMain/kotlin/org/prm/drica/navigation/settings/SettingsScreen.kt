@@ -14,7 +14,7 @@ import org.prm.drica.ui.TitleBar
 @Composable
 fun SettingsScreen(
     onBackPressed: () -> Unit,
-    onVehicleManagementClick: () -> Unit
+    onExportDataClicked: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -35,8 +35,8 @@ fun SettingsScreen(
 
         // 🔹 Settings Options
         SettingsItem(
-            title = "Vehicle Management",
-            onClick = onVehicleManagementClick
+            title = "Export App Data",
+            onClick = onExportDataClicked
         )
     }
 }

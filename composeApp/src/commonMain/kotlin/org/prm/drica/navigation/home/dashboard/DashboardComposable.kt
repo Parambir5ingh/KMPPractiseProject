@@ -63,10 +63,12 @@ fun DashboardScreen(earnings: Double, daysWorked: Int, totalProfit: Double) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            var roundedEarnings = earnings.roundToDecimals(2)
+            var formattedEarningsAmount = if (earnings < 0) "-$$roundedEarnings" else "$$roundedEarnings"
             DashboardCard(
                 modifier = Modifier
                     .weight(1f),
-                title = "$${earnings.roundToDecimals(2)}\nTotal Earnings",
+                title = "$formattedEarningsAmount\nTotal Earnings",
                 background = Color(0xFFB0BEC5)
             )
 
@@ -84,11 +86,12 @@ fun DashboardScreen(earnings: Double, daysWorked: Int, totalProfit: Double) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
+            var roundedTotalProfit = totalProfit.roundToDecimals(2)
+            var formattedTotalProfit = if (totalProfit < 0) "-$$roundedTotalProfit" else "$$roundedTotalProfit"
             DashboardCard(
                 modifier = Modifier
                     .weight(1f),
-                title = "$${totalProfit.roundToDecimals(2)}\nTotal Profit",
+                title = "$formattedTotalProfit\nTotal Profit",
                 background = Color(0xFF81C784)
             )
 
