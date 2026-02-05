@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
@@ -79,9 +80,9 @@ fun TransactionCard(tx: TransactionDataModel, onDeletion: (TransactionDataModel)
             Row(
                 modifier = Modifier.fillMaxWidth().background(Color.White).padding(start = 16.dp, top = 16.dp, bottom = 16.dp).weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+//                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = label, color = color, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                     )
@@ -94,7 +95,7 @@ fun TransactionCard(tx: TransactionDataModel, onDeletion: (TransactionDataModel)
                         text = "$totalKilometers Km", color = Black, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                     )
                 }
-                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.SpaceBetween) {
+                Column(modifier = Modifier.wrapContentWidth(), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.SpaceBetween) {
                     Text(
                         text = (if (tx.type.equals("Income")) "+$" else "-$") + tx.amount.roundToDecimals(2),
                         color = Black,
