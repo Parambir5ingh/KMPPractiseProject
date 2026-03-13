@@ -66,6 +66,8 @@ kotlin {
             implementation(libs.kmp.date.time.picker)
             implementation(libs.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.vico.compose.m3)
+            implementation(libs.calf.file.picker)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

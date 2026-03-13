@@ -7,6 +7,6 @@ import android.app.Application
 */class AndroidApplication: Application() {
     override fun onCreate() {
         super.onCreate()
-        AppContextProvider.context = applicationContext
+        AppContextProvider.applicationContext = applicationContext
     }
 }

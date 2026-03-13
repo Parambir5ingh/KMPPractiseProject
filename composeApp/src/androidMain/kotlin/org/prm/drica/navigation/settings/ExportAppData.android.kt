@@ -10,8 +10,7 @@ import java.util.Locale
 
 actual object ExportAppData {
     actual fun exportAppData(data: String) {
-        val context = AppContextProvider.context
-        println("CALLED ACTUAL -ANDROID- METHOD USING EXPECT IN COMMON MAIN : $data")
+        val context = AppContextProvider.applicationContext
 
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val today = sdf.format(Date())

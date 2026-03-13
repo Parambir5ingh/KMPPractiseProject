@@ -44,13 +44,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.prm.drica.db.DriCaDatabase
+import org.prm.drica.navigation.Screen
 import org.prm.drica.navigation.addnew.AddNew
 import org.prm.drica.navigation.addnew.AddTransactionViewModel
-import org.prm.drica.db.DriCaDatabase
 import org.prm.drica.navigation.home.Tabs
 import org.prm.drica.navigation.home.dashboard.DashboardComposable
 import org.prm.drica.navigation.home.transactions.TransactionLogs
-import org.prm.drica.navigation.Screen
 import org.prm.drica.navigation.settings.ExportAppData
 import org.prm.drica.navigation.settings.SettingsScreen
 import org.prm.drica.ui.TitleBar
@@ -105,6 +105,11 @@ fun App(database: DriCaDatabase) {
                     onExportDataClicked = {
                         scope.launch {
                             appViewModel.onExportClicked()
+                        }
+                    }, onImportedFile = { importedFile ->
+                        scope.launch {
+                            appViewModel.onFileImported(importedFile)
+                            showMessage("Data Imported Successfully")
                         }
                     }
                 )
