@@ -32,10 +32,10 @@ import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.prm.drica.db.DriCaDatabase
 import org.prm.drica.models.TransactionDataModel
-import org.prm.drica.ui.theme.DarkGreen
-import org.prm.drica.ui.theme.Red
 import org.prm.drica.ui.GenericOptionsMenu
 import org.prm.drica.ui.MenuItem
+import org.prm.drica.ui.theme.DarkGreen
+import org.prm.drica.ui.theme.Red
 import org.prm.drica.utils.formatDate
 import org.prm.drica.utils.roundToDecimals
 
@@ -67,7 +67,8 @@ fun TransactionCard(tx: TransactionDataModel, onDeletion: (TransactionDataModel)
     val color = if (tx.type.equals("Income")) DarkGreen else Red
     val label = tx.category
     val totalKilometers = tx.totalKms
-    val notes = tx.notes
+    val fuelPrice = if (tx.fuelPrice != 0.00) "@ $" + tx.fuelPrice + "\n" else ""
+    val notes = "$fuelPrice ${tx.notes}"
     val dateText = remember(tx.dateTime) { formatDate(tx.dateTime) }
 
     Card(

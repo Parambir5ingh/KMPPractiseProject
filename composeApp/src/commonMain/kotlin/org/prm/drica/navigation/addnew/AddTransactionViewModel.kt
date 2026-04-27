@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.prm.drica.db.DriCaDatabase
 import org.prm.drica.models.TransactionDataModel
+import org.prm.drica.models.VehiclesModel
 import org.prm.drica.utils.Validator
 import kotlin.time.ExperimentalTime
 
@@ -16,6 +18,7 @@ import kotlin.time.ExperimentalTime
 */
 class AddTransactionViewModel(database: DriCaDatabase) : ViewModel() {
     val transactionDao = database.getTransactionDao()
+    val vehiclesDao = database.getVehiclesDao()
 
     private val _transactionState = MutableStateFlow(TransactionDataModel())
     val transactionState: StateFlow<TransactionDataModel> = _transactionState
@@ -32,6 +35,9 @@ class AddTransactionViewModel(database: DriCaDatabase) : ViewModel() {
     private val _entryTypeOptions = MutableStateFlow(arrayOf("Income", "Expense"))
     val entryTypeOptions: StateFlow<Array<String>> = _entryTypeOptions
 
+    private val _vehicleList = MutableStateFlow<List<VehiclesModel>>(emptyList())
+    val vehicleList: StateFlow<List<VehiclesModel>> = _vehicleList.asStateFlow()
+
     private val _expenseTypeOptions = MutableStateFlow(arrayOf("Gas", "General Repair", "Major Repair", "Tyres", "Accessories"))
     val expenseTypeOptions: StateFlow<Array<String>> = _expenseTypeOptions
 
@@ -41,11 +47,38 @@ class AddTransactionViewModel(database: DriCaDatabase) : ViewModel() {
     private val _selectedEntryType = MutableStateFlow(_entryTypeOptions.value.first())
     val selectedEntryType: StateFlow<String> = _selectedEntryType
 
+    private val _selectedVehicle = MutableStateFlow<VehiclesModel?>(null)
+    val selectedVehicle: StateFlow<VehiclesModel?> = _selectedVehicle
+
     private val _selectedExpenseType = MutableStateFlow(_expenseTypeOptions.value.first())
     val selectedExpenseType: StateFlow<String> = _selectedExpenseType
 
     private val _selectedIncomeType = MutableStateFlow(_incomeTypeOptions.value.first())
     val selectedIncomeType: StateFlow<String> = _selectedIncomeType
+
+    init {
+        viewModelScope.launch {
+            vehiclesDao.getAll().collect { list ->
+                _vehicleList.value = list.map { vehicle ->
+                    VehiclesModel(
+                        id = vehicle.id,
+                        name = vehicle.name,
+                        type = vehicle.type,
+                        year = vehicle.year,
+                        kms = vehicle.kms
+                    )
+                }
+                if (vehicleList.value.isNotEmpty()) {
+                    onSelectedVehicle(vehicleList.value[0])
+                }
+            }
+        }
+    }
+
+    fun onFuelPriceChanged(value: Double) {
+        _transactionState.update { it.copy(fuelPrice = value) }
+        validateForm()
+    }
 
     fun onAmountChanged(value: Double) {
         _transactionState.update { it.copy(amount = value) }
@@ -57,6 +90,11 @@ class AddTransactionViewModel(database: DriCaDatabase) : ViewModel() {
         _transactionState.update { it.copy(totalKms = value) }
         _totalKmsError.value = Validator.validateDouble(value, "Kilometers")
         validateForm()
+    }
+
+    fun onSelectedVehicle(model: VehiclesModel) {
+        _transactionState.update { it.copy(vehicleId = model.id) }
+        _selectedVehicle.value = model
     }
 
     fun onSelectedEntryType(type: String) {
@@ -84,25 +122,34 @@ class AddTransactionViewModel(database: DriCaDatabase) : ViewModel() {
 
     private fun validateForm() {
         _isValid.value = _amountError.value == null && _totalKmsError.value == null
-//        _isValid.value = listOf(_amountError.value, _totalKmsError.value)
-//            .all { error -> error == null } &&
-//                listOf(_amountError.value, _totalKmsError.value)
-//                    .none { error -> error == "untouched" }
     }
 
     fun submit() {
-//        _transactionState.update { it.copy(dateTime = Clock.System.now().toEpochMilliseconds()) }
         viewModelScope.launch {
+            // SAVING TRANSACTION BY UPDATING CORRECT AMOUNT(PLACING MINUS SIGN IF ITS AN EXPENSE)
             if (transactionState.value.type.equals(entryTypeOptions.value[1])) { // IF ITS EXPENSE, IT WILL BE SAVED AS NEGATIVE VALUE
                 onAmountChanged(-transactionState.value.amount)
             }
             transactionDao.upsert(transactionState.value)
+
+            // UPDATING VEHICLE'S ODOMETER ON SUBMITTING A TRANSACTION
+            if (transactionState.value.vehicleId != 0L) {
+                val vehicle = vehiclesDao.getVehicleById(transactionState.value.vehicleId.toString())
+                vehicle?.let { vehicle ->
+                    val updatedVehicle = vehicle.copy(
+                        kms = transactionState.value.totalKms.toString()
+                    )
+                    vehiclesDao.upsert(updatedVehicle)
+                }
+            }
+
+            // RESETTING TRANSACTION STATE
             _transactionState.update { TransactionDataModel() }
         }
     }
 
     @OptIn(ExperimentalTime::class)
-    fun onSelectedDate(date: String, dateTimeMilis : Long) {
+    fun onSelectedDate(date: String, dateTimeMilis: Long) {
         println("Selected Date: $date, Miliseconds : $dateTimeMilis")
         _transactionState.update { it.copy(dateTime = dateTimeMilis) }
     }

@@ -20,5 +20,6 @@ data class TransactionDataModel(
     var vehicleId: Long = 0,
     var isVoid: Boolean = false,
     var voidNotes: String = "",
-    var dateTime: Long = 0
+    var dateTime: Long = 0,
+    var fuelPrice: Double = 0.00
 )

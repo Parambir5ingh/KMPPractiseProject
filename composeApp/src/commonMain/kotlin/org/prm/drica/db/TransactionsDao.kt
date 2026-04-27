@@ -22,6 +22,12 @@ interface TransactionsDao {
     @Query("SELECT * FROM TransactionData ORDER BY dateTime DESC, totalKms DESC LIMIT 1")
     suspend fun getLastTransaction(): TransactionDataModel?
 
+    @Query("SELECT * FROM TransactionData WHERE vehicleId=:vehicleId ORDER BY dateTime DESC, totalKms DESC LIMIT 1")
+    suspend fun getLastTransaction(vehicleId: String): TransactionDataModel?
+
+    @Query("SELECT * FROM TransactionData WHERE fuelPrice != 0.0 ORDER BY dateTime DESC, totalKms DESC LIMIT 1")
+    suspend fun getLastFuelPrice(): TransactionDataModel?
+
     @Query("SELECT * FROM TransactionData ORDER BY dateTime DESC, totalKms DESC")
     fun getAll(): Flow<List<TransactionDataModel>>
 

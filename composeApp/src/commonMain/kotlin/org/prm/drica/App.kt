@@ -45,14 +45,15 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.prm.drica.db.DriCaDatabase
-import org.prm.drica.navigation.Screen
-import org.prm.drica.navigation.addnew.AddNew
+import org.prm.drica.navigation.NavRoute
+import org.prm.drica.navigation.addnew.AddTransactionComoposable
 import org.prm.drica.navigation.addnew.AddTransactionViewModel
 import org.prm.drica.navigation.home.Tabs
 import org.prm.drica.navigation.home.dashboard.DashboardComposable
 import org.prm.drica.navigation.home.transactions.TransactionLogs
 import org.prm.drica.navigation.settings.ExportAppData
 import org.prm.drica.navigation.settings.SettingsScreen
+import org.prm.drica.navigation.settings.Vehicles.VehicleListScreen
 import org.prm.drica.ui.TitleBar
 import org.prm.drica.ui.theme.ScreenBackgroundColor
 
@@ -86,19 +87,20 @@ fun App(database: DriCaDatabase) {
 
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route
+            startDestination = NavRoute.Home.route
         ) {
-            composable(Screen.Home.route) {
+            composable(NavRoute.Home.route) {
                 HomeComposable(
                     onNavigate = {
-                        navController.navigate(Screen.Settings.route)
+                        navController.navigate(NavRoute.Settings.route)
                     },
                     selectedTabIndex, scope, pagerState, database, { showAddNewScreen = true }
                 )
             }
 
-            composable(Screen.Settings.route) {
+            composable(NavRoute.Settings.route) {
                 SettingsScreen(
+                    database,
                     onBackPressed = {
                         navController.popBackStack()
                     },
@@ -111,8 +113,16 @@ fun App(database: DriCaDatabase) {
                             appViewModel.onFileImported(importedFile)
                             showMessage("Data Imported Successfully")
                         }
+                    }, onVehicleManagementClicked = {
+                        navController.navigate(NavRoute.VehicleManagement.route)
                     }
                 )
+            }
+
+            composable(NavRoute.VehicleManagement.route) {
+                VehicleListScreen(database, onBackPressed = {
+                    navController.popBackStack()
+                })
             }
         }
 
@@ -122,7 +132,7 @@ fun App(database: DriCaDatabase) {
                 sheetState = sheetState,
                 containerColor = Color.White,
             ) {
-                AddNew(onDismissed = {
+                AddTransactionComoposable(onDismissed = {
                     scope.launch {
                         sheetState.hide()
                     }.invokeOnCompletion {
@@ -207,7 +217,6 @@ private fun HomeComposable(
             // ADD button
             FloatingActionButton(
                 onClick = {
-                    println("add new button clicked")
                     onAddButtonClick()
                 },
                 containerColor = MaterialTheme.colorScheme.primary,

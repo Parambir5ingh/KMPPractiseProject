@@ -9,7 +9,7 @@ import org.prm.drica.models.VehiclesModel
 
 @Database(
     entities = [TransactionDataModel::class, VehiclesModel::class],
-    version = 1
+    version = 2
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class DriCaDatabase : RoomDatabase() {

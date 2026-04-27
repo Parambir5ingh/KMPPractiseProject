@@ -3,10 +3,15 @@ package org.prm.drica.navigation.addnew
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,19 +40,18 @@ import org.prm.drica.ui.WheelDatePickerBottomSheet
 import org.prm.drica.utils.formatDate
 import org.prm.drica.utils.toValidDecimalString
 import org.prm.drica.utils.toValidLongString
-import kotlin.text.iterator
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @Composable
 @Preview
-fun PreviewAddNew() {
-//    AddNew({}, AddNewViewModel())
+fun PreviewAddTransactionComoposable() {
+//    AddTransactionComoposable({}, AddNewViewModel())
 }
 
 @OptIn(ExperimentalTime::class)
 @Composable
-fun AddNew(onDismissed: () -> Unit, viewModel: AddTransactionViewModel) {
+fun AddTransactionComoposable(onDismissed: () -> Unit, viewModel: AddTransactionViewModel) {
 //    var transactionData by remember { mutableStateOf<TransactionDataModel?>(null) }
     val transactionState by viewModel.transactionState.collectAsState()
     val amountError by viewModel.amountError.collectAsState()
@@ -55,21 +59,37 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddTransactionViewModel) {
     val isValid by viewModel.isValid.collectAsState()
 
     val entryTypeOptions by viewModel.entryTypeOptions.collectAsState()
+    val vehicleList by viewModel.vehicleList.collectAsState()
     val expenseTypeOptions by viewModel.expenseTypeOptions.collectAsState()
     val incomeTypeOptions by viewModel.incomeTypeOptions.collectAsState()
     val selectedEntryType by viewModel.selectedEntryType.collectAsState()
+    val selectedVehicle by viewModel.selectedVehicle.collectAsState()
     val selectedExpenseType by viewModel.selectedExpenseType.collectAsState()
     val selectedIncomeType by viewModel.selectedIncomeType.collectAsState()
 
     var showDatePicker by remember { mutableStateOf(false) }
+
+    LaunchedEffect(selectedVehicle) {
+        if (selectedVehicle != null) {
+            viewModel.vehiclesDao.getVehicleById(selectedVehicle?.id.toString())?.let {
+                viewModel.onTotalKmChanged(it.kms.toDouble())
+            } ?: run {
+                viewModel.onTotalKmChanged(0.00)
+            }
+        } else {
+            viewModel.transactionDao.getLastTransaction()?.let {
+                viewModel.onTotalKmChanged(it.totalKms)
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.onSelectedEntryType(entryTypeOptions.first())
         viewModel.onSelectedCategoryType(incomeTypeOptions.first())
         viewModel.onSelectedDate("", Clock.System.now().toEpochMilliseconds())
 
-        viewModel.transactionDao.getLastTransaction()?.totalKms?.let {
-            transactionState.totalKms = it
+        viewModel.transactionDao.getLastFuelPrice()?.let {
+            transactionState.fuelPrice = it.fuelPrice
         }
     }
 
@@ -103,25 +123,65 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddTransactionViewModel) {
                 },
                 onDismiss = { showDatePicker = false }
             )
+            Row(modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth()) {
+                if (vehicleList.isNotEmpty()) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        val selectedVehicleName = selectedVehicle?.name ?: ""
+                        VehiclesDropdown("Vehicle", vehicleList, selectedValue = selectedVehicleName, onSelectOption = {
+                            viewModel.onSelectedVehicle(it)
+                        })
+                    }
+                    Spacer(modifier = Modifier.width(5.dp).fillMaxHeight())
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    Dropdown("Entry Type", entryTypeOptions, selectedValue = selectedEntryType, onSelectOption = {
+                        viewModel.onSelectedEntryType(it)
+                    })
+                }
+            }
+            Row(modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth()) {
+                Box(modifier = Modifier.weight(2f)) {
+                    if (selectedEntryType == entryTypeOptions[0]) { // Income
+                        Dropdown(
+                            "Income Type",
+                            incomeTypeOptions,
+                            selectedValue = selectedIncomeType,
+                            onSelectOption = { viewModel.onSelectedCategoryType(it) }
+                        )
+                    } else { // Expense
+                        Dropdown(
+                            "Expense Type",
+                            expenseTypeOptions,
+                            selectedValue = selectedExpenseType,
+                            onSelectOption = { viewModel.onSelectedCategoryType(it) }
+                        )
+                    }
+                }
 
-            Dropdown("Entry Type", entryTypeOptions, selectedValue = selectedEntryType, onSelectOption = {
-                viewModel.onSelectedEntryType(it)
-            })
+                // WHEN GAS EXPENSE IS SELECTED
+                if (selectedEntryType.equals(entryTypeOptions[1])
+                    && selectedExpenseType.equals(expenseTypeOptions[0])
+                ) {
+//                    HJE VEHICLE LIST POPULATE KRKE OHDIYA ENTRIES DROPDOWN CH SELECT KRAUNIYA HANN
+//                    SIRF UI TEYAAR HOII HAI
+                    Spacer(modifier = Modifier.width(5.dp).fillMaxHeight())
 
-            if (selectedEntryType == entryTypeOptions[0]) { // Income
-                Dropdown(
-                    "Income Type",
-                    incomeTypeOptions,
-                    selectedValue = selectedIncomeType,
-                    onSelectOption = { viewModel.onSelectedCategoryType(it) }
-                )
-            } else { // Expense
-                Dropdown(
-                    "Expense Type",
-                    expenseTypeOptions,
-                    selectedValue = selectedExpenseType,
-                    onSelectOption = { viewModel.onSelectedCategoryType(it) }
-                )
+                    TextField(
+                        modifier = Modifier.weight(1f),
+                        value = transactionState.fuelPrice.toValidDecimalString(),
+                        onValueChange = { newText ->
+                            val filteredValue = filterNumericDecimalInput(newText)
+                            if (filteredValue.length <= 6) { // limit input length
+                                // Convert safely to Double
+                                val doubleValue = filteredValue.toDoubleOrNull() ?: 0.0
+                                viewModel.onFuelPriceChanged(doubleValue)
+                            }
+                        }, // Update the state with new text
+                        label = { Text("Price/L") }, // Optional label
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+//                    isError = amountError != null && !amountError.equals("untouched")
+                    )
+                }
             }
 
             TextField(
@@ -140,7 +200,7 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddTransactionViewModel) {
             )
 
             TextField(
-                modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 value = transactionState.amount.toValidDecimalString(),
                 onValueChange = { newText ->
                     val filteredValue = filterNumericDecimalInput(newText)
@@ -170,6 +230,13 @@ fun AddNew(onDismissed: () -> Unit, viewModel: AddTransactionViewModel) {
             Button(
                 enabled = isValid,
                 onClick = {
+                    // IF ITS NOT A GAS EXPENSE ENTRY
+                    if (selectedEntryType.equals(entryTypeOptions[0]) ||
+                        (selectedEntryType.equals(entryTypeOptions[1]) && !selectedExpenseType.equals(expenseTypeOptions[0]))
+                    ) {
+                        viewModel.onFuelPriceChanged(0.00)
+                    }
+
                     viewModel.submit()
                     onDismissed()
                 },

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,18 +18,20 @@ import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.calf.core.LocalPlatformContext
 import com.mohamedrejeb.calf.io.KmpFile
 import com.mohamedrejeb.calf.io.getPath
-import com.mohamedrejeb.calf.io.readByteArray
 import com.mohamedrejeb.calf.picker.FilePickerFileType
 import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
 import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
 import kotlinx.coroutines.launch
+import org.prm.drica.db.DriCaDatabase
 import org.prm.drica.ui.TitleBar
 
 @Composable
 fun SettingsScreen(
+    database: DriCaDatabase,
     onBackPressed: () -> Unit,
     onExportDataClicked: () -> Unit,
-    onImportedFile: (filePath : KmpFile?) -> Unit
+    onImportedFile: (filePath: KmpFile?) -> Unit,
+    onVehicleManagementClicked: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalPlatformContext.current
@@ -44,7 +47,7 @@ fun SettingsScreen(
             scope.launch {
                 file.firstOrNull()?.let {
 //                    byteArrayOfImportedFile = it.readByteArray(context)
-                    importedFilePath = it.getPath(context) ?: ""
+//                    importedFilePath = it.getPath(context) ?: ""
                     platformSpecificImportedFile = it
                     onImportedFile(platformSpecificImportedFile)
                 }
@@ -55,10 +58,10 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .systemBarsPadding()
             .background(Color.White)
     ) {
 
-        // 🔹 Title Bar
         TitleBar(
             title = "Settings",
             null,
@@ -69,13 +72,16 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 🔹 Settings Options
+        SettingsItem(
+            title = "Vehicle Management",
+            onClick = onVehicleManagementClicked
+        )
+
         SettingsItem(
             title = "Export App Data",
             onClick = onExportDataClicked
         )
 
-        // 🔹 Settings Options
         SettingsItem(
             title = "Import App Data",
             onClick = {
