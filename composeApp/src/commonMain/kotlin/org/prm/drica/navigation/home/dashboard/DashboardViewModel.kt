@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.prm.drica.db.DriCaDatabase
 import org.prm.drica.models.TransactionDataModel
+import org.prm.drica.utils.calculateMileagePerLitreFromGasFills
 import org.prm.drica.utils.getCurrentMonthRange
 import org.prm.drica.utils.getLastMonthRange
 import kotlin.time.ExperimentalTime
@@ -47,6 +49,12 @@ class DashboardViewModel(database: DriCaDatabase) : ViewModel() {
     private val _kmDriveLastMonth = MutableStateFlow(0L)
     val kmDriveLastMonth: StateFlow<Long> = _kmDriveLastMonth
 
+    private val _mileagePerLitreThisMonth = MutableStateFlow(0.0)
+    val mileagePerLitreThisMonth: StateFlow<Double> = _mileagePerLitreThisMonth
+
+    private val _mileagePerLitreLastMonth = MutableStateFlow(0.0)
+    val mileagePerLitreLastMonth: StateFlow<Double> = _mileagePerLitreLastMonth
+
     private val _daysWorked = MutableStateFlow(0)
     val daysWorked: StateFlow<Int> = _daysWorked
 
@@ -81,6 +89,12 @@ class DashboardViewModel(database: DriCaDatabase) : ViewModel() {
             if (kmDriveLastMonth?.lastKm != null && kmDriveLastMonth?.firstKm != null) {
                 _kmDriveLastMonth.value = kmDriveLastMonth.lastKm - kmDriveLastMonth.firstKm
             }
+
+            val gasFills = transactionDao.getGasTransactionsOrdered()
+            _mileagePerLitreThisMonth.value =
+                calculateMileagePerLitreFromGasFills(gasFills, start, end)
+            _mileagePerLitreLastMonth.value =
+                calculateMileagePerLitreFromGasFills(gasFills, startOfLastMonth, endOfLastMonth)
         }
         loadNumberOfDaysWorked()
     }
@@ -102,4 +116,51 @@ class DashboardViewModel(database: DriCaDatabase) : ViewModel() {
             _daysWorked.value = uniqueDays
         }
     }
+
+    fun calculateEarningsPerKm(totalEarnings: Double, totalKm: Double): Double {
+        return if (totalKm != 0.0) {
+            totalEarnings / totalKm
+        } else {
+            0.0 // avoid division by zero
+        }
+    }
+
+    suspend fun getLineChartData(): List<List<ChartPoint>> {
+        val (start, end) = getCurrentMonthRange()
+        val transactions = transactionDao.getTransactionsForDateRange(start, end).first()
+        val listOfIncome = transactions
+//            .filter { it.totalKms > 0 }
+            .sortedBy { it.dateTime }
+            .mapIndexedNotNull { index, transaction ->
+                val income = if (transaction.amount > 0.0) transaction.amount else null
+                if (income == null || income.isNaN() || income.isInfinite()) {
+                    null
+                } else {
+                    ChartPoint(
+                        x = index.toInt(),
+                        y = income.toFloat()
+                    )
+                }
+            }
+        val listOfExpense = transactions
+//            .filter { it.totalKms > 0 }
+            .sortedBy { it.dateTime }
+            .mapIndexedNotNull { index, transaction ->
+                val income = if (transaction.amount < 0.0) -transaction.amount else null
+                if (income == null || income.isNaN() || income.isInfinite()) {
+                    null
+                } else {
+                    ChartPoint(
+                        x = index.toInt(),
+                        y = income.toFloat()
+                    )
+                }
+            }
+        return listOf(listOfIncome, listOfExpense)
+    }
 }
+
+data class ChartPoint(
+    val x: Int,
+    val y: Float
+)

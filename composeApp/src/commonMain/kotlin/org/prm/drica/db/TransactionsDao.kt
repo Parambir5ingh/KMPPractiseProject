@@ -37,6 +37,9 @@ interface TransactionsDao {
     @Query("SELECT SUM(amount) FROM TransactionData WHERE dateTime >= :start AND dateTime < :end")
     suspend fun getTotalProfitThisMonth(start : Long, end : Long): Double?
 
+    @Query("SELECT * FROM TransactionData WHERE dateTime >= :start AND dateTime < :end")
+    fun getTransactionsForDateRange(start: Long, end: Long): Flow<List<TransactionDataModel>>
+
     @Query("SELECT SUM(amount) FROM TransactionData WHERE amount > 0")
     suspend fun getTotalEarnings(): Double?
 
@@ -46,6 +49,12 @@ interface TransactionsDao {
     @Query("SELECT (SELECT totalKms FROM TransactionData WHERE dateTime >= :start AND dateTime < :end ORDER BY dateTime ASC LIMIT 1) AS firstKm," +
             "(SELECT totalKms FROM TransactionData WHERE dateTime >= :start AND dateTime < :end ORDER BY dateTime DESC LIMIT 1) AS lastKm;")
     suspend fun getKmRange(start : Long, end : Long): KMRangeModel?
+
+    @Query(
+        "SELECT * FROM TransactionData WHERE type = 'Expense' AND category = 'Gas' " +
+                "AND fuelPrice > 0 ORDER BY dateTime ASC, totalKms ASC"
+    )
+    suspend fun getGasTransactionsOrdered(): List<TransactionDataModel>
 
     @Query("SELECT dateTime FROM TransactionData")
     suspend fun getAllTransactionTimestamps(): List<Long>

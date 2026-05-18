@@ -8,8 +8,12 @@ import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
+import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
+import org.prm.drica.models.TransactionDataModel
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -18,12 +22,9 @@ import kotlin.time.Instant
 * Created by parambirsingh ON 27/10/25
 */
 
-fun Double.roundToDecimals(decimals: Int): Float {
-    var dotAt = 1
-    repeat(decimals) { dotAt *= 10 }
-    val roundedValue = (this * dotAt).roundToInt()
-    val finalValue = (roundedValue / dotAt) + (roundedValue % dotAt).toFloat() / dotAt
-    return if (finalValue < 0) -finalValue else finalValue
+fun Double.roundToDecimals(decimals: Int): Double {
+    val factor = 10.0.pow(decimals)
+    return round(this * factor) / factor
 }
 
 fun Double.toValidDecimalString(): String {
@@ -100,4 +101,36 @@ fun getLastMonthRange(): Pair<Long, Long> {
         .toEpochMilliseconds()
 
     return startMillis to endMillis
+}
+
+/**
+ * Tank-to-tank mileage for a period: km between consecutive gas fill-ups divided by
+ * litres purchased on fills that fall within [start, end). Grouped per vehicle.
+ */
+fun calculateMileagePerLitreFromGasFills(
+    gasFills: List<TransactionDataModel>,
+    start: Long,
+    end: Long,
+): Double {
+    var totalKm = 0.0
+    var totalLitres = 0.0
+
+    gasFills.groupBy { it.vehicleId }.values.forEach { vehicleFills ->
+        var previousFill: TransactionDataModel? = null
+        vehicleFills.sortedBy { it.dateTime }.forEach { fill ->
+            val litres = abs(fill.amount) / fill.fuelPrice
+            if (litres <= 0.0) return@forEach
+
+            if (fill.dateTime in start..<end) {
+                totalLitres += litres
+                val previous = previousFill
+                if (previous != null && fill.totalKms > previous.totalKms) {
+                    totalKm += fill.totalKms - previous.totalKms
+                }
+            }
+            previousFill = fill
+        }
+    }
+
+    return if (totalKm > 0.0 && totalLitres > 0.0) totalKm / totalLitres else 0.0
 }

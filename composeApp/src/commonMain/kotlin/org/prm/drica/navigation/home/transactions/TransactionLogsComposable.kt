@@ -38,6 +38,7 @@ import org.prm.drica.ui.theme.DarkGreen
 import org.prm.drica.ui.theme.Red
 import org.prm.drica.utils.formatDate
 import org.prm.drica.utils.roundToDecimals
+import kotlin.math.abs
 
 @Composable
 fun TransactionLogs(database: DriCaDatabase) {
@@ -98,7 +99,7 @@ fun TransactionCard(tx: TransactionDataModel, onDeletion: (TransactionDataModel)
                 }
                 Column(modifier = Modifier.wrapContentWidth(), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.SpaceBetween) {
                     Text(
-                        text = (if (tx.type.equals("Income")) "+$" else "-$") + tx.amount.roundToDecimals(2),
+                        text = (if (tx.type.equals("Income")) "+$" else "-$") + abs(tx.amount).roundToDecimals(2),
                         color = Black,
                         style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     )

@@ -2,7 +2,6 @@ package org.prm.drica.navigation.home.dashboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.Card
@@ -29,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.compose.cartesian.data.lineSeries
@@ -49,30 +50,55 @@ fun DashboardComposable(database: DriCaDatabase) {
     val totalEarningsLastMonth by viewModel.totalEarningsLastMonth.collectAsState()
     val kmDriveThisMonth by viewModel.kmDriveThisMonth.collectAsState()
     val kmDriveLastMonth by viewModel.kmDriveLastMonth.collectAsState()
+    val mileagePerLitreThisMonth by viewModel.mileagePerLitreThisMonth.collectAsState()
+    val mileagePerLitreLastMonth by viewModel.mileagePerLitreLastMonth.collectAsState()
     val daysWorked by viewModel.daysWorked.collectAsState()
-
     val modelProducer = remember { CartesianChartModelProducer() }
 
     LaunchedEffect(dataList) {
         viewModel.loadData()
 
-        modelProducer.runTransaction {
-            // Learn more: https://patrykandpatrick.com/z5ah6v.
-            lineSeries { series(13, 8, 7, 12, 0, 1, 15, 14, 0, 11, 6, 12, 0, 11, 12, 11) }
+        val data = viewModel.getLineChartData()
+
+        if (data.isNotEmpty()) {
+            modelProducer.runTransaction {
+                lineSeries {
+                    data.forEach { seriesPoints ->
+                        if (seriesPoints.isNotEmpty()) {
+                            series(seriesPoints.map { it.y })
+                        }
+                    }
+                }
+            }
         }
     }
 
-    DashboardScreen(totalEarnings, totalEarningsThisMonth, totalProfit, totalProfitThisMonth, totalEarningsLastMonth, totalProfitLastMonth, kmDriveThisMonth, kmDriveLastMonth)
+    DashboardScreen(
+        modelProducer,
+        viewModel,
+        totalEarnings,
+        totalEarningsThisMonth,
+        totalProfit,
+        totalProfitThisMonth,
+        totalEarningsLastMonth,
+        totalProfitLastMonth,
+        kmDriveThisMonth,
+        kmDriveLastMonth,
+        mileagePerLitreThisMonth,
+        mileagePerLitreLastMonth
+    )
 }
 
 @Preview
 @Composable
 fun PrevHomeComposable() {
-    DashboardScreen(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0)
+//    DashboardScreen(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0)
 }
 
 @Composable
 fun DashboardScreen(
+    chartModelProducer: CartesianChartModelProducer,
+    viewModel: DashboardViewModel,
     earnings: Double,
     totalEarningsThisMonth: Double,
     totalProfit: Double,
@@ -80,30 +106,51 @@ fun DashboardScreen(
     totalEarningsLastMonth: Double,
     totalProfitLastMonth: Double,
     kmDriveThisMonth: Long,
-    kmDriveLastMonth: Long
+    kmDriveLastMonth: Long,
+    mileagePerLitreThisMonth: Double,
+    mileagePerLitreLastMonth: Double
 ) {
     Column(
         modifier = Modifier
+            .verticalScroll(rememberScrollState())
             .fillMaxSize()
             .background(Color.White)
             .padding(16.dp)
     ) {
-        SummaryCard("This Month", totalEarningsThisMonth, totalProfitThisMonth, kmDriveThisMonth)
+//        ComposeBasicLineChart(chartModelProducer, Modifier.fillMaxWidth().wrapContentHeight(),)
+
+        SummaryCard(
+            viewModel,
+            "This Month",
+            totalEarningsThisMonth,
+            totalProfitThisMonth,
+            kmDriveThisMonth,
+            mileagePerLitreThisMonth
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
-        SummaryCard("Last Month", totalEarningsLastMonth, totalProfitLastMonth, kmDriveLastMonth)
+        SummaryCard(
+            viewModel,
+            "Last Month",
+            totalEarningsLastMonth,
+            totalProfitLastMonth,
+            kmDriveLastMonth,
+            mileagePerLitreLastMonth
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
-        SummaryCard("Overall", earnings, totalProfit, 0)
+        SummaryCard(viewModel, "Overall", earnings, totalProfit, 0, 0.0)
     }
 }
 
 @Composable
 fun SummaryCard(
+    viewModel: DashboardViewModel,
     label: String,
     totalEarnings: Double,
     totalProfit: Double,
     kmDriven: Long?,
+    mileagePerLitre: Double,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -165,6 +212,27 @@ fun SummaryCard(
                 SummaryRow(
                     label = "Km Driven",
                     value = kmDriven?.let { "$it km" } ?: "--"
+                )
+            }
+
+            kmDriven?.toDouble()?.let { km ->
+                val earningPerKM = viewModel.calculateEarningsPerKm(totalEarnings, km)
+                if (earningPerKM != 0.0) {
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    SummaryRow(
+                        label = "Earnings Per KM",
+                        value = "$${earningPerKM.roundToDecimals(2)}"
+                    )
+                }
+            }
+
+            if (mileagePerLitre != 0.0) {
+                Spacer(modifier = Modifier.height(12.dp))
+
+                SummaryRow(
+                    label = "Mileage Per Litre",
+                    value = "${mileagePerLitre.roundToDecimals(2)} km/L"
                 )
             }
         }

@@ -24,7 +24,7 @@ sqlite = "2.6.1"
 ksp = "2.2.21-RC2-2.0.4"
 kotlinxCoroutinesCore = "1.10.2"
 kotlinx-serialization = "1.6.3"
-vico = "3.0.0-beta.3"
+vico = "3.1.0"
 
 [libraries]
 calf-file-picker = { module = "com.mohamedrejeb.calf:calf-file-picker", version.ref = "calfFilePicker" }
@@ -52,7 +52,17 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+# Compose Multiplatform
+vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
+
+# Material 2 theming in Compose Multiplatform
+vico-compose-m2 = { group = "com.patrykandpatrick.vico", name = "compose-m2", version.ref = "vico" }
+
+# Material 3 theming in Compose Multiplatform
 vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
+
+# Android view system
+vico-views = { group = "com.patrykandpatrick.vico", name = "views", version.ref = "vico" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
