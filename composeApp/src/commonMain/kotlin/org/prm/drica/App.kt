@@ -38,8 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import drica.composeapp.generated.resources.Res
-import drica.composeapp.generated.resources.ic_add
+import logbook.composeapp.generated.resources.Res
+import logbook.composeapp.generated.resources.ic_add
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
@@ -132,13 +132,17 @@ fun App(database: DriCaDatabase) {
                 sheetState = sheetState,
                 containerColor = Color.White,
             ) {
-                AddTransactionComoposable(onDismissed = {
-                    scope.launch {
-                        sheetState.hide()
-                    }.invokeOnCompletion {
-                        showAddNewScreen = false
-                    }
-                }, addTransViewModel)
+                AddTransactionComoposable(
+                    onDismissed = {
+                        scope.launch {
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            showAddNewScreen = false
+                        }
+                    },
+                    viewModel = addTransViewModel,
+                    sheetVisible = showAddNewScreen,
+                )
             }
         }
     }
@@ -164,7 +168,7 @@ private fun HomeComposable(
     ) {
 
         TitleBar(
-            "DriCA", {
+            "LogBook", {
                 onNavigate()
             },
             null

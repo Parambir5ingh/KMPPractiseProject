@@ -1,4 +1,4 @@
-rootProject.name = "DriCa"
+rootProject.name = "LogBook"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

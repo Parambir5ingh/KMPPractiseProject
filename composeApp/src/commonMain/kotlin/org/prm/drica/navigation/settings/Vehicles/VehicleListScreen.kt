@@ -33,8 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mohamedrejeb.calf.core.LocalPlatformContext
-import drica.composeapp.generated.resources.Res
-import drica.composeapp.generated.resources.ic_add
+import logbook.composeapp.generated.resources.Res
+import logbook.composeapp.generated.resources.ic_add
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.prm.drica.db.DriCaDatabase

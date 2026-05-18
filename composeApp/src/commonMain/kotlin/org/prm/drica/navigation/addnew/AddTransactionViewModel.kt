@@ -106,14 +106,46 @@ class AddTransactionViewModel(database: DriCaDatabase) : ViewModel() {
 
         _selectedEntryType.value = type
         _transactionState.update { it.copy(type = type, category = category) }
+        if (type == "Expense" && category == "Gas") {
+            loadLastFuelPrice()
+        }
     }
 
     fun onSelectedCategoryType(category: String) {
         _transactionState.update { it.copy(category = category) }
-        if (category in _expenseTypeOptions.value)
+        if (category in _expenseTypeOptions.value) {
             _selectedExpenseType.value = category
-        else
+        } else {
             _selectedIncomeType.value = category
+        }
+        if (_selectedEntryType.value == "Expense" && category == "Gas") {
+            loadLastFuelPrice()
+        }
+    }
+
+    /** Called when the add-transaction sheet opens. Resets form and prefills defaults. */
+    fun prepareNewTransaction() {
+        _amountError.value = "untouched"
+        _totalKmsError.value = null
+        _isValid.value = false
+        _selectedEntryType.value = _entryTypeOptions.value.first()
+        _selectedExpenseType.value = _expenseTypeOptions.value.first()
+        _selectedIncomeType.value = _incomeTypeOptions.value.first()
+        _transactionState.value = TransactionDataModel(
+            type = _entryTypeOptions.value.first(),
+            category = _incomeTypeOptions.value.first(),
+        )
+        viewModelScope.launch {
+            transactionDao.getLastTransaction()?.totalKms?.let { onTotalKmChanged(it) }
+        }
+    }
+
+    private fun loadLastFuelPrice() {
+        viewModelScope.launch {
+            transactionDao.getLastFuelPrice()?.let { last ->
+                _transactionState.update { it.copy(fuelPrice = last.fuelPrice) }
+            }
+        }
     }
 
     fun onNotesChanged(notes: String) {
@@ -143,8 +175,7 @@ class AddTransactionViewModel(database: DriCaDatabase) : ViewModel() {
                 }
             }
 
-            // RESETTING TRANSACTION STATE
-            _transactionState.update { TransactionDataModel() }
+            prepareNewTransaction()
         }
     }
 

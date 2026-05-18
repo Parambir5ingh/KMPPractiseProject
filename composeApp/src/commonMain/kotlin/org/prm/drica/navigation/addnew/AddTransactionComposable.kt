@@ -51,7 +51,11 @@ fun PreviewAddTransactionComoposable() {
 
 @OptIn(ExperimentalTime::class)
 @Composable
-fun AddTransactionComoposable(onDismissed: () -> Unit, viewModel: AddTransactionViewModel) {
+fun AddTransactionComoposable(
+    onDismissed: () -> Unit,
+    viewModel: AddTransactionViewModel,
+    sheetVisible: Boolean = true,
+) {
 //    var transactionData by remember { mutableStateOf<TransactionDataModel?>(null) }
     val transactionState by viewModel.transactionState.collectAsState()
     val amountError by viewModel.amountError.collectAsState()
@@ -83,14 +87,11 @@ fun AddTransactionComoposable(onDismissed: () -> Unit, viewModel: AddTransaction
         }
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.onSelectedEntryType(entryTypeOptions.first())
-        viewModel.onSelectedCategoryType(incomeTypeOptions.first())
+    // Re-run when the sheet opens so defaults and fuel price load reliably on Android.
+    LaunchedEffect(sheetVisible) {
+        if (!sheetVisible) return@LaunchedEffect
+        viewModel.prepareNewTransaction()
         viewModel.onSelectedDate("", Clock.System.now().toEpochMilliseconds())
-
-        viewModel.transactionDao.getLastFuelPrice()?.let {
-            transactionState.fuelPrice = it.fuelPrice
-        }
     }
 
     Column(
@@ -158,10 +159,8 @@ fun AddTransactionComoposable(onDismissed: () -> Unit, viewModel: AddTransaction
                     }
                 }
 
-                // WHEN GAS EXPENSE IS SELECTED
-                if (selectedEntryType.equals(entryTypeOptions[1])
-                    && selectedExpenseType.equals(expenseTypeOptions[0])
-                ) {
+                // Price/L field only for Gas expenses; visibility follows selected type/category.
+                if (selectedEntryType == "Expense" && selectedExpenseType == "Gas") {
 //                    HJE VEHICLE LIST POPULATE KRKE OHDIYA ENTRIES DROPDOWN CH SELECT KRAUNIYA HANN
 //                    SIRF UI TEYAAR HOII HAI
                     Spacer(modifier = Modifier.width(5.dp).fillMaxHeight())
